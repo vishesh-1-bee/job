@@ -101,11 +101,22 @@ export default function OnboardingDialog({
         setProgress(100);
         setUploadState("done");
 
+        // Trigger job search on ALL 4 platforms in background after resume is parsed
+        // We don't await this — it runs in the background while the user is redirected
+        fetch("/api/jobs/fetch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            platforms: ["greenhouse", "lever", "workable", "wellfound"],
+            forceRefresh: true,
+          }),
+        }).catch((e) => console.warn("Background job fetch failed:", e));
+
         // Allow user to see success state, then close dialog and refresh
         setTimeout(() => {
           onComplete();
           router.refresh();
-          router.push("/dashboard/profile");
+          router.push("/dashboard");
         }, 1800);
       } catch (err: any) {
         setErrorMsg(err.message || "Something went wrong. Please try again.");
